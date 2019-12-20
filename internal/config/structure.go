@@ -10,6 +10,7 @@ type ReceiverTeardownConfig struct {
 // ReceiverConfig hold configuration for receiver
 type ReceiverConfig struct {
 	Teardown ReceiverTeardownConfig
+	Port     int
 }
 
 // SenderConfig hold configuration for sender

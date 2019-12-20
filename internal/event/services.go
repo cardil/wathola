@@ -6,24 +6,28 @@ import (
 	"time"
 )
 
-// NewRegisterStep creates RegisterStep
-func NewRegisterStep() RegisterStep {
+var throwns = make([]thrown, 0)
+
+// NewStepsStore creates StepsStore
+func NewStepsStore() StepsStore {
 	return &stepStore{
 		store: make(map[int]int),
 	}
 }
 
-// NewRegisterFinished creates RegisterFinished
-func NewRegisterFinished() RegisterFinished {
+// NewFinishedStore creates FinishedStore
+func NewFinishedStore(steps StepsStore) FinishedStore {
 	return &finishedStore{
 		received: 0,
+		state:    Active,
 		count:    -1,
+		steps:    steps,
 	}
 }
 
-func (s stepStore) RegisterStep(step Step) {
+func (s *stepStore) RegisterStep(step *Step) {
 	if times, found := s.store[step.Number]; found {
-		log.Errorf(
+		throw(
 			"event #%d received %d times, but should be received only once",
 			step.Number, times+1)
 	} else {
@@ -33,9 +37,13 @@ func (s stepStore) RegisterStep(step Step) {
 	log.Infof("event #%d received", step.Number)
 }
 
-func (f finishedStore) RegisterFinished(finished Finished) {
+func (s *stepStore) Count() int {
+	return len(s.store)
+}
+
+func (f *finishedStore) RegisterFinished(finished *Finished) {
 	if f.received > 0 {
-		log.Errorf(
+		throw(
 			"finish event should be received only once, received %d",
 			f.received+1)
 	}
@@ -45,13 +53,28 @@ func (f finishedStore) RegisterFinished(finished Finished) {
 	d := config.Instance.Receiver.Teardown.Duration
 	log.Infof("waiting additional %v to be sure all events came", d)
 	time.Sleep(d)
-	receivedEvents := len(f.steps.store)
+	receivedEvents := f.steps.Count()
 	if receivedEvents != finished.Count {
-		log.Errorf("expecting to have %d unique events received, " +
-			"but received %d unique events", finished.Count, receivedEvents)
+		throw("expecting to have %v unique events received, "+
+			"but received %v unique events", finished.Count, receivedEvents)
+		f.state = Failed
 	} else {
 		log.Infof("properly received %d unique events", receivedEvents)
+		f.state = Success
 	}
+}
+
+func (f *finishedStore) State() State {
+	return f.state
+}
+
+func throw(format string, args ...interface{}) {
+	t := thrown{
+		format: format,
+		args:   args,
+	}
+	throwns = append(throwns, t)
+	log.Errorf(t.format, t.args...)
 }
 
 type stepStore struct {
@@ -61,5 +84,11 @@ type stepStore struct {
 type finishedStore struct {
 	received int
 	count    int
-	steps    stepStore
+	state    State
+	steps    StepsStore
+}
+
+type thrown struct {
+	format string
+	args   []interface{}
 }

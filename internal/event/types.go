@@ -26,3 +26,15 @@ func (s Step) Type() string {
 func (f Finished) Type() string {
 	return FinishedType
 }
+
+// State defines a state of event store
+type State int
+
+const (
+	// Active == 1 (iota has been reset)
+	Active  State = 1 << iota
+	// Success == 2
+	Success State = 1 << iota
+	// Failed == 4
+	Failed  State = 1 << iota
+)

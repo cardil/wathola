@@ -1,16 +1,18 @@
 package event
 
-// RegisterStep contains methods that register step event type
-type RegisterStep interface {
-	RegisterStep(step Step)
+// StepsStore contains methods that register step event type
+type StepsStore interface {
+	RegisterStep(step *Step)
+	Count() int
 }
 
-// RegisterFinished registers a finished event type
-type RegisterFinished interface {
-	RegisterFinished(finished Finished)
+// FinishedStore registers a finished event type
+type FinishedStore interface {
+	RegisterFinished(finished *Finished)
+	State() State
 }
 
-// Type says a type of an event
-type Type interface {
+// Typed says a type of an event
+type Typed interface {
 	Type() string
 }

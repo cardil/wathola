@@ -2,7 +2,9 @@ package main
 
 import "github.com/cardil/wathola/internal/receiver"
 
+var instance receiver.Receiver
+
 func main() {
-	r := receiver.New()
-	r.Receive()
+	instance = receiver.New()
+	instance.Receive()
 }

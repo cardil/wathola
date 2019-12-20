@@ -11,12 +11,12 @@ RICHGO       ?= rich$(GO)
 RESET          = \033[0m
 make_std_color = \033[3$1m      # defined for 1 through 7
 make_color     = \033[38;5;$1m  # defined for 1 through 255
-BLUE = $(strip $(call make_color,38))
-PINK = $(strip $(call make_color,210))
-RED = $(strip $(call make_color,206))
-GREEN = $(strip $(call make_color,120))
+BLUE   = $(strip $(call make_color,38))
+PINK   = $(strip $(call make_color,210))
+RED    = $(strip $(call make_color,206))
+GREEN  = $(strip $(call make_color,120))
 DGREEN = $(strip $(call make_color,106))
-GRAY = $(strip $(call make_color,224))
+GRAY   = $(strip $(call make_color,224))
 
 .PHONY: default
 default: binaries
@@ -43,7 +43,7 @@ check: builddeps
 .PHONY: test
 test: builddir check
 	@echo " $(GREEN)✔️ Testing$(RESET)"
-	$(RICHGO) test -covermode=count -coverprofile=build/coverage.out ./...
+	$(RICHGO) test -v -covermode=count -coverprofile=build/coverage.out ./...
 
 .PHONY: binaries
 binaries: builddir test
