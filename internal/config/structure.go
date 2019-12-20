@@ -17,6 +17,7 @@ type ReceiverConfig struct {
 type SenderConfig struct {
 	Address  string
 	Interval time.Duration
+	Cooldown time.Duration
 }
 
 // Config hold complete configuration

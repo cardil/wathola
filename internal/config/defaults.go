@@ -11,7 +11,8 @@ var Instance = Config{
 		},
 	},
 	Sender: SenderConfig{
-		Address:  "http://localhost:8080",
-		Interval: 20 * time.Millisecond,
+		Address:  "http://localhost:22111/",
+		Interval: 10 * time.Millisecond,
+		Cooldown: time.Second,
 	},
 }

@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/cloudevents/sdk-go v0.10.2
 	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2
+	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.3.0
 	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
