@@ -3,7 +3,7 @@ package config
 import "time"
 
 // Instance holds configuration values
-var Instance = Config{
+var Instance = &Config{
 	Receiver: ReceiverConfig{
 		Port: 22111,
 		Teardown: ReceiverTeardownConfig{

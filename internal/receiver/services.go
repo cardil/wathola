@@ -12,6 +12,7 @@ var cancel context.CancelFunc
 
 // New creates new Receiver
 func New() Receiver {
+	config.ReadIfPresent()
 	stepsStore := event.NewStepsStore()
 	finishedStore := event.NewFinishedStore(stepsStore)
 	r := newReceiver(stepsStore, finishedStore)

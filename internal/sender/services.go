@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-var senderConfig = config.Instance.Sender
+var senderConfig = &config.Instance.Sender
 
 type sender struct {
 	counter int

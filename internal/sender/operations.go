@@ -1,12 +1,14 @@
 package sender
 
 import (
+	"github.com/cardil/wathola/internal/config"
 	"math/rand"
 	"time"
 )
 
 // New creates new Sender
 func New() Sender {
+	config.ReadIfPresent()
 	return &sender{
 		active:  true,
 		counter: 0,
