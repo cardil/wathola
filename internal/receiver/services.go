@@ -29,7 +29,8 @@ func Stop() {
 }
 
 func (r receiver) Receive() {
-	opt := cloudevents.WithPort(config.Instance.Receiver.Port)
+	port := config.Instance.Receiver.Port
+	opt := cloudevents.WithPort(port)
 	http, err := cloudevents.NewHTTPTransport(opt)
 	if err != nil {
 		log.Fatalf("failed to create http transport, %v", err)
@@ -40,7 +41,7 @@ func (r receiver) Receive() {
 	}
 	var ctx context.Context
 	ctx, cancel = context.WithCancel(context.Background())
-	log.Info("listening for events")
+	log.Infof("listening for events on port %v", port)
 	err = c.StartReceiver(ctx, r.receiveEvent)
 	if err != nil {
 		log.Fatal(err)
