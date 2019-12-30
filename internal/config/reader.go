@@ -8,15 +8,18 @@ import (
 	"os"
 )
 
+var location = "~/.config/wathola/config.toml"
+var logFatal = log.Fatal
+
 // ReadIfPresent read a configuration file if it exists
 func ReadIfPresent() {
-	configFile, err := homedir.Expand("~/.config/wathola/config.toml")
+	configFile, err := homedir.Expand(location)
 	ensure.NoError(err)
 	if fileExists(configFile) {
 		log.Infof("Reading config file: %v", configFile)
 		err := Read(configFile)
 		if err != nil {
-			log.Fatal(err)
+			logFatal(err)
 		}
 	} else {
 		log.Infof("Define config file to be taken into account: %v", configFile)
