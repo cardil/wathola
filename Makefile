@@ -48,10 +48,16 @@ test: builddir check
 .PHONY: binaries
 binaries: builddir test
 	@echo " $(BLUE)🔨 Building$(RESET)"
-	$(RICHGO) build -o $(SENDER_BIN) $(SENDER_DIR)
-	$(RICHGO) build -o $(RECEIVER_BIN) $(RECEIVER_DIR)
+	CGO_ENABLED=0 GOOS=linux $(RICHGO) build -o $(SENDER_BIN) $(SENDER_DIR)
+	CGO_ENABLED=0 GOOS=linux $(RICHGO) build -o $(RECEIVER_BIN) $(RECEIVER_DIR)
 
 .PHONY: run
 run: builddir binaries
 	@echo " $(RED)🏃 Running$(RESET)"
 	cd $(BUILD_DIR) && $(RECEIVER_BIN) $(args)
+
+.PHONY: images
+images:
+	@echo " $(BLUE)🔨 Building images$(RESET)"
+	docker build --tag cardil/wathola-receiver --file images/receiver/Dockerfile .
+	docker build --tag cardil/wathola-sender --file images/sender/Dockerfile .
