@@ -3,10 +3,12 @@ package event
 import (
 	"github.com/cardil/wathola/internal/config"
 	log "github.com/sirupsen/logrus"
+	"sync"
 	"time"
 )
 
 var throwns = make([]thrown, 0)
+var mutex = sync.RWMutex{}
 
 // NewStepsStore creates StepsStore
 func NewStepsStore() StepsStore {
@@ -26,6 +28,7 @@ func NewFinishedStore(steps StepsStore) FinishedStore {
 }
 
 func (s *stepStore) RegisterStep(step *Step) {
+	mutex.Lock()
 	if times, found := s.store[step.Number]; found {
 		throw(
 			"event #%d received %d times, but should be received only once",
@@ -34,6 +37,7 @@ func (s *stepStore) RegisterStep(step *Step) {
 		s.store[step.Number] = 0
 	}
 	s.store[step.Number]++
+	mutex.Unlock()
 	log.Infof("event #%d received", step.Number)
 }
 
