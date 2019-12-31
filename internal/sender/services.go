@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -22,10 +23,10 @@ type sender struct {
 
 func (s *sender) SendContinually() {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		for sig := range c {
-			// sig is a ^C, handle it
+			// sig is a ^C or term, handle it
 			log.Infof("Received: %v, closing", sig.String())
 			s.active = false
 			s.sendFinished()
