@@ -4,9 +4,9 @@ RUN apk add --update git alpine-sdk
 RUN mkdir -p /code
 ADD . /code/
 WORKDIR /code
-RUN make receiver
+RUN make forwarder
 
 FROM scratch
-COPY --from=builder /code/build/wathola-receiver /wathola-receiver
+COPY --from=builder /code/build/wathola-forwarder /wathola-forwarder
 WORKDIR /
-CMD ["/wathola-receiver"]
+CMD ["/wathola-forwarder"]

@@ -2,6 +2,7 @@ package receiver
 
 import (
 	"context"
+	"github.com/cardil/wathola/internal/client"
 	"github.com/cardil/wathola/internal/config"
 	"github.com/cardil/wathola/internal/event"
 	cloudevents "github.com/cloudevents/sdk-go"
@@ -30,22 +31,7 @@ func Stop() {
 
 func (r receiver) Receive() {
 	port := config.Instance.Receiver.Port
-	opt := cloudevents.WithPort(port)
-	http, err := cloudevents.NewHTTPTransport(opt)
-	if err != nil {
-		log.Fatalf("failed to create http transport, %v", err)
-	}
-	c, err := cloudevents.NewClient(http)
-	if err != nil {
-		log.Fatalf("failed to create client, %v", err)
-	}
-	var ctx context.Context
-	ctx, cancel = context.WithCancel(context.Background())
-	log.Infof("listening for events on port %v", port)
-	err = c.StartReceiver(ctx, r.receiveEvent)
-	if err != nil {
-		log.Fatal(err)
-	}
+	client.Receive(port, &cancel, r.receiveEvent)
 }
 
 func (r receiver) receiveEvent(e cloudevents.Event) {

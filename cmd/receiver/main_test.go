@@ -15,7 +15,7 @@ func TestReceiverMain(t *testing.T) {
 	go main()
 	defer receiver.Stop()
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(time.Second)
 
 	assert.NotNil(t, instance)
 }

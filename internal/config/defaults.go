@@ -11,6 +11,7 @@ import (
 var Instance = defaultValues()
 
 var port = envint("PORT", 22111)
+var forwarderPort = envint("PORT", 22110)
 
 func envint(envKey string, defaultValue int) int {
 	val, ok := os.LookupEnv(envKey)
@@ -32,8 +33,12 @@ func defaultValues() *Config {
 				Duration: 5 * time.Second,
 			},
 		},
+		Forwarder: ForwarderConfig{
+			Target: fmt.Sprintf("http://localhost:%v/", port),
+			Port:   forwarderPort,
+		},
 		Sender: SenderConfig{
-			Address:  fmt.Sprintf("http://localhost:%v/", port),
+			Address:  fmt.Sprintf("http://localhost:%v/", forwarderPort),
 			Interval: 10 * time.Millisecond,
 			Cooldown: time.Second,
 		},

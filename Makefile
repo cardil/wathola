@@ -1,9 +1,11 @@
-PROJECT_DIR  = $(shell readlink -f .)
-BUILD_DIR    = "$(PROJECT_DIR)/build"
-RECEIVER_DIR = "$(PROJECT_DIR)/cmd/receiver"
-RECEIVER_BIN = "$(BUILD_DIR)/wathola-receiver"
-SENDER_DIR   = "$(PROJECT_DIR)/cmd/sender"
-SENDER_BIN   = "$(BUILD_DIR)/wathola-sender"
+PROJECT_DIR   = $(shell readlink -f .)
+BUILD_DIR     = "$(PROJECT_DIR)/build"
+SENDER_DIR    = "$(PROJECT_DIR)/cmd/sender"
+SENDER_BIN    = "$(BUILD_DIR)/wathola-sender"
+FORWARDER_DIR = "$(PROJECT_DIR)/cmd/forwarder"
+FORWARDER_BIN = "$(BUILD_DIR)/wathola-forwarder"
+RECEIVER_DIR  = "$(PROJECT_DIR)/cmd/receiver"
+RECEIVER_BIN  = "$(BUILD_DIR)/wathola-receiver"
 
 GO           ?= go
 RICHGO       ?= rich$(GO)
@@ -45,19 +47,27 @@ test: builddir check
 	@echo " $(GREEN)✔️ Testing$(RESET)"
 	$(RICHGO) test -v -covermode=count -coverprofile=build/coverage.out ./...
 
-.PHONY: binaries
-binaries: builddir test
-	@echo " $(BLUE)🔨 Building$(RESET)"
+.PHONY: sender
+sender: builddir test
+	@echo " $(BLUE)🔨 Building sender$(RESET)"
 	CGO_ENABLED=0 GOOS=linux $(RICHGO) build -o $(SENDER_BIN) $(SENDER_DIR)
+
+.PHONY: forwarder
+forwarder: builddir test
+	@echo " $(BLUE)🔨 Building forwarder$(RESET)"
+	CGO_ENABLED=0 GOOS=linux $(RICHGO) build -o $(FORWARDER_BIN) $(FORWARDER_DIR)
+
+.PHONY: receiver
+receiver: builddir test
+	@echo " $(BLUE)🔨 Building receiver$(RESET)"
 	CGO_ENABLED=0 GOOS=linux $(RICHGO) build -o $(RECEIVER_BIN) $(RECEIVER_DIR)
 
-.PHONY: run
-run: builddir binaries
-	@echo " $(RED)🏃 Running$(RESET)"
-	cd $(BUILD_DIR) && $(RECEIVER_BIN) $(args)
+.PHONY: binaries
+binaries: sender forwarder receiver
 
 .PHONY: images
 images:
 	@echo " $(BLUE)🔨 Building images$(RESET)"
-	docker build --tag cardil/wathola-receiver --file images/receiver/Dockerfile .
 	docker build --tag cardil/wathola-sender --file images/sender/Dockerfile .
+	docker build --tag cardil/wathola-forwarder --file images/forwarder/Dockerfile .
+	docker build --tag cardil/wathola-receiver --file images/receiver/Dockerfile .

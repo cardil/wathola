@@ -20,8 +20,15 @@ type SenderConfig struct {
 	Cooldown time.Duration
 }
 
+// ForwarderConfig holds configuration for forwarder
+type ForwarderConfig struct {
+	Target string
+	Port   int
+}
+
 // Config hold complete configuration
 type Config struct {
-	Receiver ReceiverConfig
-	Sender   SenderConfig
+	Sender    SenderConfig
+	Forwarder ForwarderConfig
+	Receiver  ReceiverConfig
 }

@@ -4,7 +4,7 @@ RUN apk add --update git alpine-sdk
 RUN mkdir -p /code
 ADD . /code/
 WORKDIR /code
-RUN make binaries
+RUN make sender
 
 FROM scratch
 COPY --from=builder /code/build/wathola-sender /wathola-sender
