@@ -7,9 +7,15 @@ type ReceiverTeardownConfig struct {
 	Duration time.Duration
 }
 
+// ReceiverProgressConfig holds config receiver progress reporting
+type ReceiverProgressConfig struct {
+	Duration time.Duration
+}
+
 // ReceiverConfig hold configuration for receiver
 type ReceiverConfig struct {
 	Teardown ReceiverTeardownConfig
+	Progress ReceiverProgressConfig
 	Port     int
 }
 

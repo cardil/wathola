@@ -30,7 +30,10 @@ func defaultValues() *Config {
 		Receiver: ReceiverConfig{
 			Port: port,
 			Teardown: ReceiverTeardownConfig{
-				Duration: 5 * time.Second,
+				Duration: 3 * time.Second,
+			},
+			Progress: ReceiverProgressConfig{
+				Duration: time.Second,
 			},
 		},
 		Forwarder: ForwarderConfig{

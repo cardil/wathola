@@ -9,6 +9,7 @@ import (
 
 var throwns = make([]thrown, 0)
 var mutex = sync.RWMutex{}
+var lastProgressReport = time.Now()
 
 // NewStepsStore creates StepsStore
 func NewStepsStore() StepsStore {
@@ -38,7 +39,8 @@ func (s *stepStore) RegisterStep(step *Step) {
 	}
 	s.store[step.Number]++
 	mutex.Unlock()
-	log.Infof("event #%d received", step.Number)
+	log.Debugf("event #%d received", step.Number)
+	s.reportProgress()
 }
 
 func (s *stepStore) Count() int {
@@ -61,6 +63,7 @@ func (f *finishedStore) RegisterFinished(finished *Finished) {
 	if receivedEvents != finished.Count {
 		throw("expecting to have %v unique events received, "+
 			"but received %v unique events", finished.Count, receivedEvents)
+		f.reportViolations(finished)
 		f.state = Failed
 	} else {
 		log.Infof("properly received %d unique events", receivedEvents)
@@ -70,6 +73,27 @@ func (f *finishedStore) RegisterFinished(finished *Finished) {
 
 func (f *finishedStore) State() State {
 	return f.state
+}
+
+func (f *finishedStore) reportViolations(finished *Finished) {
+	steps := f.steps.(*stepStore)
+	for eventNo := 1; eventNo <= finished.Count; eventNo++ {
+		times, ok := steps.store[eventNo]
+		if !ok {
+			times = 0
+		}
+		if times != 1 {
+			throw("event #%v should be received once, but was received %v times",
+				eventNo, times)
+		}
+	}
+}
+
+func (s *stepStore) reportProgress() {
+	if lastProgressReport.Add(config.Instance.Receiver.Progress.Duration).Before(time.Now()) {
+		lastProgressReport = time.Now()
+		log.Infof("collected %v unique events", s.Count())
+	}
 }
 
 func throw(format string, args ...interface{}) {
