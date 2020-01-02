@@ -8,6 +8,7 @@ import (
 	cloudeventshttp "github.com/cloudevents/sdk-go/pkg/cloudevents/transport/http"
 	log "github.com/sirupsen/logrus"
 	nethttp "net/http"
+	"strings"
 )
 
 // Receive events and push then to passed fn
@@ -52,8 +53,15 @@ func (r readinessProbe) ServeHTTP(rw nethttp.ResponseWriter, req *nethttp.Reques
 		rw.WriteHeader(config.Instance.Readiness.Status)
 		_, err := rw.Write([]byte(config.Instance.Readiness.Message))
 		ensure.NoError(err)
-		log.Debug("Received ready check")
+		log.Debugf("Received ready check. Headers: %v", headersOf(req))
 	} else {
 		r.next.ServeHTTP(rw, req)
 	}
+}
+
+func headersOf(req *nethttp.Request) string {
+	var b strings.Builder
+	ensure.NoError(req.Header.Write(&b))
+	headers := b.String()
+	return strings.ReplaceAll(headers, "\r\n", "; ")
 }

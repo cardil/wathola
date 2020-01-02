@@ -7,12 +7,17 @@ import (
 	"github.com/cardil/wathola/internal/sender"
 	"github.com/cloudevents/sdk-go"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
+
+var lastProgressReport = time.Now()
 
 // New creates new forwarder
 func New() Forwarder {
 	config.ReadIfPresent()
-	f := &forwarder{}
+	f := &forwarder{
+		count: 0,
+	}
 	return f
 }
 
@@ -34,12 +39,22 @@ func (f *forwarder) Forward() {
 
 func (f *forwarder) forwardEvent(e cloudevents.Event) {
 	target := config.Instance.Forwarder.Target
-	log.Infof("Forwarding event %v to %v", e.ID(), target)
+	log.Tracef("Forwarding event %v to %v", e.ID(), target)
 	err := sender.SendEvent(e, target)
 	if err != nil {
 		log.Error(err)
 	}
+	f.count++
+	f.reportProgress()
+}
+
+func (f *forwarder) reportProgress() {
+	if lastProgressReport.Add(config.Instance.Receiver.Progress.Duration).Before(time.Now()) {
+		lastProgressReport = time.Now()
+		log.Infof("forwarded %v events", f.count)
+	}
 }
 
 type forwarder struct {
+	count int
 }

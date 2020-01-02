@@ -39,7 +39,7 @@ func (s *stepStore) RegisterStep(step *Step) {
 	}
 	s.store[step.Number]++
 	mutex.Unlock()
-	log.Debugf("event #%d received", step.Number)
+	log.Tracef("event #%d received", step.Number)
 	s.reportProgress()
 }
 
