@@ -34,6 +34,9 @@ func Read(configFile string) error {
 	}
 	d := toml.NewDecoder(r)
 	err = d.Decode(Instance)
+	if err == nil {
+		log.SetLevel(Instance.LogLevel)
+	}
 	return err
 }
 

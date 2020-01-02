@@ -1,6 +1,9 @@
 package config
 
-import "time"
+import (
+	"github.com/sirupsen/logrus"
+	"time"
+)
 
 // ReceiverTeardownConfig holds config receiver teardown
 type ReceiverTeardownConfig struct {
@@ -46,4 +49,5 @@ type Config struct {
 	Forwarder ForwarderConfig
 	Receiver  ReceiverConfig
 	Readiness ReadinessConfig
+	LogLevel  logrus.Level
 }

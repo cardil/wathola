@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	nethttp "net/http"
 	"os"
 	"strconv"
@@ -52,5 +53,6 @@ func defaultValues() *Config {
 			Message: "OK",
 			Status:  nethttp.StatusOK,
 		},
+		LogLevel: logrus.InfoLevel,
 	}
 }
