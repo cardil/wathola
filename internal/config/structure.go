@@ -32,9 +32,18 @@ type ForwarderConfig struct {
 	Port   int
 }
 
+// ReadinessConfig holds a readiness configuration
+type ReadinessConfig struct {
+	Enabled bool
+	URI     string
+	Message string
+	Status  int
+}
+
 // Config hold complete configuration
 type Config struct {
 	Sender    SenderConfig
 	Forwarder ForwarderConfig
 	Receiver  ReceiverConfig
+	Readiness ReadinessConfig
 }

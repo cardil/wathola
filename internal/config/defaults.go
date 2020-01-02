@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	nethttp "net/http"
 	"os"
 	"strconv"
 	"time"
@@ -44,6 +45,12 @@ func defaultValues() *Config {
 			Address:  fmt.Sprintf("http://localhost:%v/", forwarderPort),
 			Interval: 10 * time.Millisecond,
 			Cooldown: time.Second,
+		},
+		Readiness: ReadinessConfig{
+			Enabled: true,
+			URI:     "/healthz",
+			Message: "OK",
+			Status:  nethttp.StatusOK,
 		},
 	}
 }
