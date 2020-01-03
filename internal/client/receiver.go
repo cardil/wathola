@@ -11,14 +11,25 @@ import (
 	"strings"
 )
 
+// ReceiveEvent represents a function that receive event
+type ReceiveEvent func(e cloudevents.Event)
+
 // Receive events and push then to passed fn
-func Receive(port int, cancel *context.CancelFunc, receiveEvent func(e cloudevents.Event)) {
+func Receive(
+	port int,
+	cancel *context.CancelFunc,
+	receiveEvent ReceiveEvent,
+	middlewares ... cloudeventshttp.Middleware) {
 	portOpt := cloudevents.WithPort(port)
 	opts := make([]cloudeventshttp.Option, 0)
 	opts = append(opts, portOpt)
 	if config.Instance.Readiness.Enabled {
 		readyOpt := cloudevents.WithMiddleware(readinessMiddleware)
 		opts = append(opts, readyOpt)
+	}
+	for _, m := range middlewares {
+		opt := cloudevents.WithMiddleware(m)
+		opts = append(opts, opt)
 	}
 	http, err := cloudevents.NewHTTPTransport(opts...)
 	if err != nil {
@@ -38,7 +49,7 @@ func Receive(port int, cancel *context.CancelFunc, receiveEvent func(e cloudeven
 }
 
 func readinessMiddleware(next nethttp.Handler) nethttp.Handler {
-	log.Infof("Using readiness probe: %v", config.Instance.Readiness.URI)
+	log.Debugf("Using readiness probe: %v", config.Instance.Readiness.URI)
 	return &readinessProbe{
 		next: next,
 	}

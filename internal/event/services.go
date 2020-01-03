@@ -1,37 +1,52 @@
 package event
 
 import (
+	"fmt"
 	"github.com/cardil/wathola/internal/config"
 	log "github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )
 
-var throwns = make([]thrown, 0)
 var mutex = sync.RWMutex{}
 var lastProgressReport = time.Now()
 
+// ErrorStore contains errors that was thrown
+type ErrorStore struct {
+	state  State
+	thrown []thrown
+}
+
+// NewErrorStore creates a new error store
+func NewErrorStore() *ErrorStore {
+	return &ErrorStore{
+		state:  Active,
+		thrown: make([]thrown, 0),
+	}
+}
+
 // NewStepsStore creates StepsStore
-func NewStepsStore() StepsStore {
+func NewStepsStore(errors *ErrorStore) StepsStore {
 	return &stepStore{
-		store: make(map[int]int),
+		store:  make(map[int]int),
+		errors: errors,
 	}
 }
 
 // NewFinishedStore creates FinishedStore
-func NewFinishedStore(steps StepsStore) FinishedStore {
+func NewFinishedStore(steps StepsStore, errors *ErrorStore) FinishedStore {
 	return &finishedStore{
 		received: 0,
-		state:    Active,
 		count:    -1,
 		steps:    steps,
+		errors:   errors,
 	}
 }
 
 func (s *stepStore) RegisterStep(step *Step) {
 	mutex.Lock()
 	if times, found := s.store[step.Number]; found {
-		throw(
+		s.errors.throw(
 			"event #%d received %d times, but should be received only once",
 			step.Number, times+1)
 	} else {
@@ -49,7 +64,7 @@ func (s *stepStore) Count() int {
 
 func (f *finishedStore) RegisterFinished(finished *Finished) {
 	if f.received > 0 {
-		throw(
+		f.errors.throw(
 			"finish event should be received only once, received %d",
 			f.received+1)
 	}
@@ -61,18 +76,27 @@ func (f *finishedStore) RegisterFinished(finished *Finished) {
 	time.Sleep(d)
 	receivedEvents := f.steps.Count()
 	if receivedEvents != finished.Count {
-		throw("expecting to have %v unique events received, "+
+		f.errors.throw("expecting to have %v unique events received, "+
 			"but received %v unique events", finished.Count, receivedEvents)
 		f.reportViolations(finished)
-		f.state = Failed
+		f.errors.state = Failed
 	} else {
 		log.Infof("properly received %d unique events", receivedEvents)
-		f.state = Success
+		f.errors.state = Success
 	}
 }
 
 func (f *finishedStore) State() State {
-	return f.state
+	return f.errors.state
+}
+
+func (f *finishedStore) Thrown() []string {
+	msgs := make([]string, 0)
+	for _, t := range f.errors.thrown {
+		errMsg := fmt.Sprintf(t.format, t.args...)
+		msgs = append(msgs, errMsg)
+	}
+	return msgs
 }
 
 func (f *finishedStore) reportViolations(finished *Finished) {
@@ -83,7 +107,7 @@ func (f *finishedStore) reportViolations(finished *Finished) {
 			times = 0
 		}
 		if times != 1 {
-			throw("event #%v should be received once, but was received %v times",
+			f.errors.throw("event #%v should be received once, but was received %v times",
 				eventNo, times)
 		}
 	}
@@ -96,23 +120,24 @@ func (s *stepStore) reportProgress() {
 	}
 }
 
-func throw(format string, args ...interface{}) {
+func (e *ErrorStore) throw(format string, args ...interface{}) {
 	t := thrown{
 		format: format,
 		args:   args,
 	}
-	throwns = append(throwns, t)
+	e.thrown = append(e.thrown, t)
 	log.Errorf(t.format, t.args...)
 }
 
 type stepStore struct {
-	store map[int]int
+	store  map[int]int
+	errors *ErrorStore
 }
 
 type finishedStore struct {
 	received int
 	count    int
-	state    State
+	errors   *ErrorStore
 	steps    StepsStore
 }
 

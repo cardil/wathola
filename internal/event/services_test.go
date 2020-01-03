@@ -10,9 +10,9 @@ import (
 
 func TestProperEventsPropagation(t *testing.T) {
 	// given
-	throwns = make([]thrown, 0)
-	stepsStore := NewStepsStore()
-	finishedStore := NewFinishedStore(stepsStore)
+	errors := NewErrorStore()
+	stepsStore := NewStepsStore(errors)
+	finishedStore := NewFinishedStore(stepsStore, errors)
 
 	// when
 	stepsStore.RegisterStep(&Step{Number: 1})
@@ -21,14 +21,14 @@ func TestProperEventsPropagation(t *testing.T) {
 	finishedStore.RegisterFinished(&Finished{Count: 3})
 
 	// then
-	assert.Empty(t, throwns)
+	assert.Empty(t, errors.thrown)
 }
 
 func TestMissingAndDoubleEvent(t *testing.T) {
 	// given
-	throwns = make([]thrown, 0)
-	stepsStore := NewStepsStore()
-	finishedStore := NewFinishedStore(stepsStore)
+	errors := NewErrorStore()
+	stepsStore := NewStepsStore(errors)
+	finishedStore := NewFinishedStore(stepsStore, errors)
 
 	// when
 	stepsStore.RegisterStep(&Step{Number: 1})
@@ -37,14 +37,14 @@ func TestMissingAndDoubleEvent(t *testing.T) {
 	finishedStore.RegisterFinished(&Finished{Count: 3})
 
 	// then
-	assert.NotEmpty(t, throwns)
+	assert.NotEmpty(t, errors.thrown)
 }
 
 func TestDoubleFinished(t *testing.T) {
 	// given
-	throwns = make([]thrown, 0)
-	stepsStore := NewStepsStore()
-	finishedStore := NewFinishedStore(stepsStore)
+	errors := NewErrorStore()
+	stepsStore := NewStepsStore(errors)
+	finishedStore := NewFinishedStore(stepsStore, errors)
 
 	// when
 	stepsStore.RegisterStep(&Step{Number: 1})
@@ -53,7 +53,7 @@ func TestDoubleFinished(t *testing.T) {
 	finishedStore.RegisterFinished(&Finished{Count: 2})
 
 	// then
-	assert.NotEmpty(t, throwns)
+	assert.NotEmpty(t, errors.thrown)
 }
 
 func TestMain(m *testing.M) {

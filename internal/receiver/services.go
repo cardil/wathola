@@ -2,11 +2,15 @@ package receiver
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/cardil/wathola/internal/client"
 	"github.com/cardil/wathola/internal/config"
+	"github.com/cardil/wathola/internal/ensure"
 	"github.com/cardil/wathola/internal/event"
 	cloudevents "github.com/cloudevents/sdk-go"
 	log "github.com/sirupsen/logrus"
+	"net/http"
 )
 
 var cancel context.CancelFunc
@@ -14,8 +18,9 @@ var cancel context.CancelFunc
 // New creates new Receiver
 func New() Receiver {
 	config.ReadIfPresent()
-	stepsStore := event.NewStepsStore()
-	finishedStore := event.NewFinishedStore(stepsStore)
+	errors := event.NewErrorStore()
+	stepsStore := event.NewStepsStore(errors)
+	finishedStore := event.NewFinishedStore(stepsStore, errors)
 	r := newReceiver(stepsStore, finishedStore)
 	return r
 }
@@ -31,7 +36,7 @@ func Stop() {
 
 func (r receiver) Receive() {
 	port := config.Instance.Receiver.Port
-	client.Receive(port, &cancel, r.receiveEvent)
+	client.Receive(port, &cancel, r.receiveEvent, r.reportMiddleware)
 }
 
 func (r receiver) receiveEvent(e cloudevents.Event) {
@@ -55,6 +60,13 @@ func (r receiver) receiveEvent(e cloudevents.Event) {
 	}
 }
 
+func (r *receiver) reportMiddleware(next http.Handler) http.Handler {
+	return &reportHandler{
+		next:     next,
+		receiver: r,
+	}
+}
+
 type receiver struct {
 	step     event.StepsStore
 	finished event.FinishedStore
@@ -66,4 +78,47 @@ func newReceiver(step event.StepsStore, finished event.FinishedStore) *receiver 
 		finished: finished,
 	}
 	return r
+}
+
+type reportHandler struct {
+	next     http.Handler
+	receiver *receiver
+}
+
+func (r reportHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if req.RequestURI == "/report" {
+		s := r.receiver.finished.State()
+		errs := r.receiver.finished.Thrown()
+		sj := &StateJSON{
+			State:  stateToString(s),
+			Thrown: errs,
+		}
+		b, err := json.Marshal(sj)
+		ensure.NoError(err)
+		rw.Header().Add("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusOK)
+		_, err = rw.Write(b)
+		ensure.NoError(err)
+	} else {
+		r.next.ServeHTTP(rw, req)
+	}
+}
+
+func stateToString(state event.State) string {
+	switch state {
+	case event.Active:
+		return "active"
+	case event.Success:
+		return "success"
+	case event.Failed:
+		return "failed"
+	default:
+		panic(fmt.Sprintf("unknown state: %v", state))
+	}
+}
+
+// StateJSON represents state as JSON
+type StateJSON struct {
+	State  string   `json:"state"`
+	Thrown []string `json:"thrown"`
 }

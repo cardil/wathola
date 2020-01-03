@@ -10,6 +10,7 @@ type StepsStore interface {
 type FinishedStore interface {
 	RegisterFinished(finished *Finished)
 	State() State
+	Thrown() []string
 }
 
 // Typed says a type of an event
