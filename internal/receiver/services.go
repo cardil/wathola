@@ -89,8 +89,10 @@ func (r reportHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if req.RequestURI == "/report" {
 		s := r.receiver.finished.State()
 		errs := r.receiver.finished.Thrown()
+		events := r.receiver.step.Count()
 		sj := &StateJSON{
 			State:  stateToString(s),
+			Events: events,
 			Thrown: errs,
 		}
 		b, err := json.Marshal(sj)
@@ -120,5 +122,6 @@ func stateToString(state event.State) string {
 // StateJSON represents state as JSON
 type StateJSON struct {
 	State  string   `json:"state"`
+	Events int      `json:"events"`
 	Thrown []string `json:"thrown"`
 }
