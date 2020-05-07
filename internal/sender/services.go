@@ -3,15 +3,16 @@ package sender
 import (
 	"context"
 	"fmt"
-	"github.com/cardil/wathola/internal/config"
-	"github.com/cardil/wathola/internal/ensure"
-	"github.com/cardil/wathola/internal/event"
-	cloudevents "github.com/cloudevents/sdk-go"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/cardil/wathola/internal/config"
+	"github.com/cardil/wathola/internal/event"
+	cloudevents "github.com/cloudevents/sdk-go"
+	log "github.com/sirupsen/logrus"
+	"github.com/wavesoftware/go-ensure"
 )
 
 var senderConfig = &config.Instance.Sender

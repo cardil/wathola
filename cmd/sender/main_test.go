@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/cardil/wathola/internal/ensure"
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/wavesoftware/go-ensure"
 )
 
 func TestSenderMain(t *testing.T) {

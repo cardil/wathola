@@ -2,13 +2,14 @@ package client
 
 import (
 	"context"
+	nethttp "net/http"
+	"strings"
+
 	"github.com/cardil/wathola/internal/config"
-	"github.com/cardil/wathola/internal/ensure"
 	cloudevents "github.com/cloudevents/sdk-go"
 	cloudeventshttp "github.com/cloudevents/sdk-go/pkg/cloudevents/transport/http"
 	log "github.com/sirupsen/logrus"
-	nethttp "net/http"
-	"strings"
+	"github.com/wavesoftware/go-ensure"
 )
 
 // ReceiveEvent represents a function that receive event
@@ -17,7 +18,7 @@ type ReceiveEvent func(e cloudevents.Event)
 // Receive events and push then to passed fn
 func Receive(
 	port int,
-	cancel *context.CancelFunc,
+	cancelRegistrar func(*context.CancelFunc),
 	receiveEvent ReceiveEvent,
 	middlewares ... cloudeventshttp.Middleware) {
 	portOpt := cloudevents.WithPort(port)
@@ -40,8 +41,8 @@ func Receive(
 		log.Fatalf("failed to create client, %v", err)
 	}
 	ctx, ccancel := context.WithCancel(context.Background())
-	cancel = &ccancel
 	log.Infof("listening for events on port %v", port)
+	cancelRegistrar(&ccancel)
 	err = c.StartReceiver(ctx, receiveEvent)
 	if err != nil {
 		log.Fatal(err)

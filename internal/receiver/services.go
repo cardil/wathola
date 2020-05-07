@@ -4,16 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/cardil/wathola/internal/client"
 	"github.com/cardil/wathola/internal/config"
-	"github.com/cardil/wathola/internal/ensure"
 	"github.com/cardil/wathola/internal/event"
 	cloudevents "github.com/cloudevents/sdk-go"
 	log "github.com/sirupsen/logrus"
+	"github.com/wavesoftware/go-ensure"
+
 	"net/http"
 )
 
-var cancel context.CancelFunc
+var cancel *context.CancelFunc
 
 // New creates new Receiver
 func New() Receiver {
@@ -27,16 +29,25 @@ func New() Receiver {
 
 // Stop will stop running receiver if there is one
 func Stop() {
-	if cancel != nil {
+	if IsRunning() {
 		log.Info("stopping receiver")
-		cancel()
+		cf := *cancel
+		cf()
 		cancel = nil
 	}
 }
 
+// IsRunning checks if receiver is operating and can be stopped
+func IsRunning() bool {
+	return cancel != nil
+}
+
 func (r receiver) Receive() {
 	port := config.Instance.Receiver.Port
-	client.Receive(port, &cancel, r.receiveEvent, r.reportMiddleware)
+	cancelRegistrar := func(cc *context.CancelFunc) {
+		cancel = cc
+	}
+	client.Receive(port, cancelRegistrar, r.receiveEvent, r.reportMiddleware)
 }
 
 func (r receiver) receiveEvent(e cloudevents.Event) {

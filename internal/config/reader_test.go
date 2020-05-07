@@ -2,10 +2,12 @@ package config
 
 import (
 	"fmt"
-	"github.com/cardil/wathola/internal/ensure"
+
 	"github.com/google/uuid"
 	"github.com/mitchellh/go-homedir"
 	"github.com/stretchr/testify/assert"
+	"github.com/wavesoftware/go-ensure"
+
 	"io/ioutil"
 	"os"
 	"path"
@@ -30,6 +32,8 @@ address = 'http://default-broker.event-example.svc.cluster.local/'
 	assert.Equal(t,
 		"http://default-broker.event-example.svc.cluster.local/",
 		Instance.Sender.Address)
+	assert.Equal(t, DefaultReceiverPort, Instance.Receiver.Port)
+	assert.Equal(t, DefaultForwarderPort, Instance.Forwarder.Port)
 }
 
 func TestReadIfPresentAndInvalid(t *testing.T) {
@@ -65,6 +69,8 @@ func TestReadIfNotPresent(t *testing.T) {
 	assert.Equal(t,
 		"http://localhost:22110/",
 		Instance.Sender.Address)
+	assert.Equal(t, DefaultReceiverPort, Instance.Receiver.Port)
+	assert.Equal(t, DefaultForwarderPort, Instance.Forwarder.Port)
 }
 
 func ensureConfigFileNotPresent() string {

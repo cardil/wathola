@@ -1,10 +1,11 @@
 package config
 
 import (
-	"github.com/cardil/wathola/internal/ensure"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pelletier/go-toml"
 	log "github.com/sirupsen/logrus"
+	"github.com/wavesoftware/go-ensure"
+
 	"os"
 )
 
