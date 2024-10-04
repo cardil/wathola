@@ -1,3 +1,4 @@
+// Deprecated: use knative.dev/eventing/test/upgrade/prober/wathola instead.
 module github.com/cardil/wathola
 
 go 1.13
